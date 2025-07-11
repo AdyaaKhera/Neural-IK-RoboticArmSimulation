@@ -74,3 +74,33 @@ model = InverseKinematicsModel() #creating an instance
 print(model) #check
 """
 
+criterion = nn.MSELoss() #mean squared error loss function
+optimizer = torch.optim.Adam(model.parameters(), lr = 0.001) #using the Adam optimizer
+#the optimizer will adjust the parameters of the model and it's learning rate is 0.001
+
+#training the model 100 times
+for epoch in range(100):
+    total_loss = 0
+    for xbatch, ybatch in train_loader: #each batch will have 64 samples
+        output = model(xbatch)
+        loss = criterion(output, ybatch)
+        optimizer.zero_grad() #crealing up gradients from last batch
+        loss.backward()
+        optimizer.step() #applying the changes
+        total_loss += loss.item() #.item mconverts the tensor into a number
+    if epoch % 10 == 0:
+        avg_loss = total_loss / len(train_loader)
+        print(f"Epoch {epoch} — Avg Loss: {avg_loss:.4f}")
+
+#test loop
+model.eval() #set to evaluation mode
+test_loss = 0
+
+with torch.no_grad(): #diabled gradients
+    for xbatch, ybatch in test_loader:
+        output = model(xbatch)
+        loss = criterion(output, ybatch)
+        test_loss += loss.item() #converting tensor to number
+
+avg_test_loss = test_loss / len(test_loader)
+print(f"Test Loss: {avg_test_loss:.4f}")
