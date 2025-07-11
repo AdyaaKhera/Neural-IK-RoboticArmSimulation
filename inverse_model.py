@@ -104,3 +104,65 @@ with torch.no_grad(): #diabled gradients
 
 avg_test_loss = test_loss / len(test_loader)
 print(f"Test Loss: {avg_test_loss:.4f}")
+
+#-------------predict and plot------------------
+
+from forward_kinematics import plot_arm, link1, link2
+import matplotlib.pyplot as plt
+import math
+
+def predict_plot(x_input, y_input):
+    #checking span
+    max_reach = link1 + link2
+    min_reach = abs(link1 - link2)
+    distance = (x_input**2 + y_input**2)**0.5
+
+    if y_input < 0: 
+        print(f"point ({x_input:.2f}, {y_input:.2f}) is below ground level.")
+        plt.scatter([x_input], [y_input], color="red")
+        plt.title("Below Ground Level")
+        plt.axis("equal")
+        plt.grid(True)
+        plt.show()
+        return
+
+    elif distance > max_reach or distance < min_reach:
+        print(f"point ({x_input: .2f}, {y_input: .2f}) is unreachable")
+        plt.scatter([x_input], [y_input], color = "red")
+        plt.title("target unreachable")
+        plt.axis("equal")
+        plt.grid(True)
+        plt.show()
+        return
+    
+    else: 
+        #normalizing input
+        point = torch.tensor([[x_input, y_input]], dtype=torch.float32)
+        point = (point - xmean) / xstd
+
+        #setting to evaluation mode
+        model.eval()
+        with torch.no_grad():
+            prediction = model(point)
+
+        #denormalizing the output
+        angles = prediction * (ymax - ymin) + ymin #inverse of the normalization
+        theta1, theta2 = angles[0].tolist()
+
+        theta1_rad = math.radians(theta1)
+        x1 = link1 * math.cos(theta1_rad)
+        y1 = link1 * math.sin(theta1_rad)
+
+        if y1 < 0:
+            print(f"elbow goes below ground level at y = {y1:.2f}")
+            plt.scatter([x_input], [y_input], color = "orange")
+            plt.title("Elbow Below Ground")
+            plt.axis("equal")
+            plt.grid(True)
+            plt.show()
+            return
+
+        print(f"predicted angles — θ₁: {theta1:.2f}°, θ₂: {theta2:.2f}°")
+        plot_arm(theta1, theta2)
+
+predict_plot(100, 50)
