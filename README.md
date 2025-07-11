@@ -26,7 +26,7 @@ A simulation of inverse kinematics using a neural network (MLP) to predict joint
 
 ---
 
-##Notes/Limitations
+## Notes/Limitations
 
 - Only supports planar 2-link arms with fixed link lengths
 - Trained on elbow-up configuration only
