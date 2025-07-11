@@ -1,7 +1,7 @@
 #this file will contain the MLP for inverse kinematics
 
 import torch, csv 
-import numpy as np
+#import numpy as np
 import torch.nn as nn
 from torch.utils.data import TensorDataset, random_split, DataLoader
 
@@ -124,16 +124,16 @@ def predict_plot(x_input, y_input):
         plt.axis("equal")
         plt.grid(True)
         plt.show()
-        return
+        return None, None
 
     elif distance > max_reach or distance < min_reach:
-        print(f"point ({x_input: .2f}, {y_input: .2f}) is unreachable")
+        print(f"point ({x_input:.2f}, {y_input:.2f}) is unreachable")
         plt.scatter([x_input], [y_input], color = "red")
         plt.title("target unreachable")
         plt.axis("equal")
         plt.grid(True)
         plt.show()
-        return
+        return None, None
     
     else: 
         #normalizing input
@@ -148,6 +148,9 @@ def predict_plot(x_input, y_input):
         #denormalizing the output
         angles = prediction * (ymax - ymin) + ymin #inverse of the normalization
         theta1, theta2 = angles[0].tolist()
+        theta1 = max(min(theta1, 90), 0)
+        theta2 = max(min(theta2, 0), -90)
+
 
         theta1_rad = math.radians(theta1)
         x1 = link1 * math.cos(theta1_rad)
@@ -160,9 +163,49 @@ def predict_plot(x_input, y_input):
             plt.axis("equal")
             plt.grid(True)
             plt.show()
-            return
+            return None, None
 
         print(f"predicted angles — θ₁: {theta1:.2f}°, θ₂: {theta2:.2f}°")
+        """
         plot_arm(theta1, theta2)
+        plt.legend()
+        plt.grid(True)
+        plt.axis("equal")
+        plt.show()
+        """
+        return theta1, theta2  # instead of calling plot_arm directly
 
-predict_plot(100, 50)
+
+"""
+predict_plot(100, 50) #check
+"""
+
+last_angles = [0, 0]
+lines = [] #line object for arm
+joints = [] #scatter objects
+text = [] #angle label
+
+def onclick(event):
+    global last_angles
+    if event.inaxes:
+        xclick, yclick = event.xdata, event.ydata
+        print(f"\n mouse clicked at: ({xclick:.2f}, {yclick:.2f})")
+
+        theta1, theta2 = predict_plot(xclick, yclick)
+        if theta1 is not None and theta2 is not None:
+            plot_arm(theta1, theta2, ax, lines, joints, text, animate=True, last_angles=last_angles)
+            last_angles[:] = [theta1, theta2]
+
+
+fig, ax = plt.subplots() #gives control over the figure and the axes
+ax.set_title("2D Robot Arm")
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+ax.set_xlim(0, link1 + link2)
+ax.set_ylim(0, link1 + link2)
+ax.grid(True)
+ax.set_aspect("equal")
+
+fig.canvas.mpl_connect("button_press_event", onclick)
+
+plt.show(block = True)
