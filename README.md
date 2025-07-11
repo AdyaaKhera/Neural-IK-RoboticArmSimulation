@@ -21,29 +21,12 @@ A simulation of inverse kinematics using a neural network (MLP) to predict joint
 |---------------------|------------------------------------------|
 | `PyTorch`           | Neural network for inverse kinematics    |
 | `Matplotlib`        | Animation and plotting                   |
-| `NumPy`             | Numerical operations                     |
 | `CSV`               | Dataset I/O                              |
 | `Python 3.9+`       | Core language                            |
 
 ---
 
-## Folder Structure
-
-Neural-IK-RoboticArmSimulation/
-│
-├── data/
-│ └── dataset.csv # (x, y) → (θ₁, θ₂) dataset
-├── forward_kinematics.py # FK + animated plot_arm()
-├── dataset.py # Dataset generator
-├── plot_dataset.py # Visualizing span
-├── inverse_model.py # Neural IK + simulation UI
-├── media/ # Project media
-└── README.md # Project documentation
-
-
----
-
-##Notes/Limitations
+## Notes/Limitations
 
 - Only supports planar 2-link arms with fixed link lengths
 - Trained on elbow-up configuration only
